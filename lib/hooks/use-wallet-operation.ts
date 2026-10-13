@@ -24,6 +24,11 @@ export function useWalletOperation(scope: string, enabled: boolean) {
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState("");
+  // Latest status/hash returned for this scope (submit or reconcile).
+  const [result, setResult] = useState<{
+    status: string;
+    txHash: string;
+  } | null>(null);
   const lock = useRef(false);
   const retryAt = useRef(0);
   const storageBlocked = useRef(false);
@@ -101,6 +106,7 @@ export function useWalletOperation(scope: string, enabled: boolean) {
             },
           );
     save({ ...attempted, prepared: { ...r.prepared, txHash: data.txHash } });
+    setResult({ status: data.status, txHash: data.txHash });
     setMessage(`${data.status} · ${data.txHash}. Activity can arrive later.`);
     if (r.operation === "execute" && replacementSafe(data, false)) finish();
   }
@@ -258,6 +264,7 @@ export function useWalletOperation(scope: string, enabled: boolean) {
           prepared: { ...r.prepared, txHash: data.txHash },
         };
         save(reconciled);
+        setResult({ status: data.status, txHash: data.txHash });
         setMessage(`${data.status} · ${data.txHash}`);
         if (replacementSafe(data, false)) {
           finish();
@@ -302,6 +309,7 @@ export function useWalletOperation(scope: string, enabled: boolean) {
     recovery,
     busy,
     message,
+    result,
     loaded,
     start,
     reconcile,

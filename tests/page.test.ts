@@ -18,13 +18,13 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 async function screen() {
-  const { default: Page } = await import("@/app/page");
+  const { default: Page } = await import("@/app/send/page");
   return renderToStaticMarkup(await Page());
 }
 it("keeps checkout as the default while discovery precedes runnable payments", async () => {
   const html = await screen();
-  expect(html).toContain("<h2>Pay</h2>");
-  expect(html).toContain("<h2>Live feed</h2>");
+  expect(html).toContain("Magpadala</h2>");
+  expect(html).toContain("Kasaysayan</h2>");
   expect(html).toContain("Checking deployment capabilities");
   expect(html).not.toContain("Per-payment recipient");
   expect(html).not.toContain(token);
