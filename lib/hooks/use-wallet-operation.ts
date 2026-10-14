@@ -17,7 +17,15 @@ import {
 } from "@/lib/recovery";
 export type { Recovery, Operation } from "@/lib/recovery";
 export { replacementSafe } from "@/lib/recovery";
-export function useWalletOperation(scope: string, enabled: boolean) {
+// Execute requests go to `routes`; the defaults are the main deployment's.
+// PUNDAR's locked padala passes its own server-pinned routes.
+export type ExecuteRoutes = { pay: string; integration: string };
+const MAIN_ROUTES: ExecuteRoutes = { pay: "/api/pay", integration: "/api/integration" };
+export function useWalletOperation(
+  scope: string,
+  enabled: boolean,
+  routes: ExecuteRoutes = MAIN_ROUTES,
+) {
   const key = `paiflow:operation:v1:${scope}`;
   const preparationKey = `${key}:preparing`;
   const [recovery, setRecovery] = useState<Recovery | null>(null);
@@ -83,7 +91,7 @@ export function useWalletOperation(scope: string, enabled: boolean) {
     const data =
       r.operation === "execute"
         ? await browserRequest<{ status: string; txHash: string }>(
-            "/api/pay",
+            routes.pay,
             {
               signedXdr: r.signedXdr,
             },
@@ -175,7 +183,7 @@ export function useWalletOperation(scope: string, enabled: boolean) {
       let prepared: Recovery["prepared"];
       try {
         prepared = await browserRequest<Recovery["prepared"]>(
-          operation === "execute" ? "/api/pay" : "/api/integration",
+          operation === "execute" ? routes.pay : "/api/integration",
           operation === "execute"
             ? input
             : { operation, phase: "prepare", input },
@@ -232,7 +240,7 @@ export function useWalletOperation(scope: string, enabled: boolean) {
       // Persist a legacy record's original hash even when status lookup fails.
       if (r.operation === "execute" && !r.prepared.txHash) {
         const original = await browserRequest<{ txHash: string }>(
-          "/api/integration",
+          routes.integration,
           {
             operation: "execute",
             phase: "prepare",
@@ -252,7 +260,7 @@ export function useWalletOperation(scope: string, enabled: boolean) {
       }
       if (r.operation === "execute") {
         const data = await browserRequest<{ status: string; txHash: string }>(
-          "/api/integration",
+          routes.integration,
           {
             operation: "execute",
             phase: "reconcile",

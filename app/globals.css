@@ -1939,6 +1939,73 @@ body:has(.cta-band) .site-footer {
   color: var(--c);
 }
 
+/* Naka-iskedyul na padala: held until the release time, then split. */
+.locked {
+  overflow: hidden;
+}
+.locked-body {
+  display: grid;
+  gap: 20px;
+  padding: clamp(24px, 4vw, 40px);
+}
+.locked-head {
+  display: grid;
+  gap: 20px;
+}
+@media (min-width: 760px) {
+  .locked-head {
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    gap: 40px;
+  }
+}
+.locked-head .h2 {
+  margin: 4px 0 10px;
+}
+.release-clock {
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+  min-width: 180px;
+  padding: 16px 20px;
+  border-radius: var(--r);
+  background: var(--ink);
+  color: #fff8f1;
+}
+.release-clock.done {
+  background: var(--sea);
+}
+.release-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(255 248 240 / 0.7);
+}
+.release-value {
+  font-size: 2.4rem;
+  line-height: 1;
+}
+.locked-form {
+  display: grid;
+  gap: 14px;
+  justify-items: start;
+}
+.amount-field-sm {
+  width: min(360px, 100%);
+}
+.amount-field-sm .amount-input {
+  font-size: clamp(2.4rem, 6vw, 3.2rem);
+}
+.activity-hold .outcome-note {
+  color: #7a5f06;
+  font-weight: 700;
+}
+.locked-activity {
+  padding-top: 8px;
+  border-top: 1px dashed var(--line-strong);
+}
+
 /* Pop-up after a padala finishes. */
 .toast {
   position: fixed;

@@ -1,7 +1,9 @@
 "use client";
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import Link from "next/link";
-import type { EventPage, PublicConfig } from "@/lib/paiflow";
+import type { EventPage, PublicConfig, LockedPublic } from "@/lib/paiflow";
+import { LockedPadala } from "@/components/pundar/locked-padala";
+import { shortDeployment, tokenHint } from "@/lib/token-hint";
 import { browserRequest } from "@/lib/browser-api";
 import {
   readPadala,
@@ -42,9 +44,11 @@ const MIN_USDC = formatUsdc(MIN_PADALA_STROOPS);
 export function StarterApp({
   config,
   recipients = null,
+  locked = null,
 }: {
   config: PublicConfig;
   recipients?: PundarRecipient[] | null;
+  locked?: LockedPublic;
 }) {
   const enabled = config.mode === "demo" || config.mode === "team";
   const { profile } = useProfile();
@@ -63,11 +67,14 @@ export function StarterApp({
     ? `${config.mode}:${discovery.platformOrigin}/${discovery.deploymentId}`
     : "unconfigured";
   const workflow = useWalletOperation(scope, enabled && !!discovery);
+  // The wallet is needed by either deployment; a broken main config must not
+  // stop the OFW from connecting for a locked padala.
+  const walletOn = enabled || !!locked;
   const activity = useActivity(enabled && !!discovery, scope);
   const family = useBalances(enabled && !!recipients);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!walletOn) return;
     setAddress("");
     const refresh = () => {
       void refreshWallet()
@@ -77,7 +84,7 @@ export function StarterApp({
     refresh();
     window.addEventListener("focus", refresh);
     return () => window.removeEventListener("focus", refresh);
-  }, [enabled, configIdentity]);
+  }, [walletOn, configIdentity]);
 
   const resultHash = workflow.result?.txHash;
   const resultStatus = workflow.result?.status;
@@ -239,7 +246,8 @@ export function StarterApp({
         )}
         {config.mode === "disabled" && (
           <p className="notice alert" role="alert">
-            Payments unavailable: {config.message}
+            {tokenHint(config.message, "main", null) ??
+              `Payments unavailable: ${config.message}`}
           </p>
         )}
         {config.mode === "demo" && (
@@ -257,8 +265,8 @@ export function StarterApp({
         )}
         {discoveryError && (
           <p className="notice alert" role="alert">
-            Discovery unavailable: {discoveryError}. Confirm credentials and
-            hosted API availability before transacting.
+            {tokenHint(discoveryError, "main", shortDeployment(config.deploymentUrl)) ??
+              `Discovery unavailable: ${discoveryError}. Confirm credentials and hosted API availability before transacting.`}
           </p>
         )}
         {discovery && !usdcFlow && (
@@ -375,14 +383,14 @@ export function StarterApp({
           <div className="row-actions">
             <button
               className="btn btn-primary"
-              disabled={!enabled || workflow.busy}
+              disabled={!walletOn || workflow.busy}
               onClick={() => void connect()}
             >
               Ikonekta ang Freighter
             </button>
             <button
               className="btn btn-ghost"
-              disabled={!enabled || workflow.busy}
+              disabled={!walletOn || workflow.busy}
               onClick={() =>
                 void refreshWallet()
                   .then(setAddress)
@@ -523,6 +531,9 @@ export function StarterApp({
           </section>
         );
       })()}
+
+      {/* Independent of the main deployment: its own token and server check. */}
+      {locked && <LockedPadala locked={locked} address={address} enabled />}
 
       {workflow.recovery && (
         <section className="card panel stack" aria-labelledby="recover-title">

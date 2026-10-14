@@ -89,6 +89,61 @@ function teamConfig(): Config {
     return configurationError("Set a valid deployment UUID for team mode.");
   return { origin: origin(), deploymentId, token };
 }
+// PUNDAR: a second, team-only deployment for locked padala (On Receive →
+// Condition time_after → Hold / Split). Selected by this server-side name only;
+// a deployment UUID is never accepted from the browser.
+export type Target = "main" | "locked";
+function lockedConfig(): Config {
+  const token = process.env.PUNDAR_LOCKED_API_TOKEN?.trim();
+  const deploymentId = process.env.PUNDAR_LOCKED_DEPLOYMENT_ID?.trim();
+  if (!token || !deploymentId)
+    return configurationError(
+      "Locked padala requires PUNDAR_LOCKED_API_TOKEN and PUNDAR_LOCKED_DEPLOYMENT_ID.",
+    );
+  if (!/^pfk_[a-f0-9]{64}$/.test(token))
+    return configurationError("Set a valid API token for the locked deployment.");
+  if (
+    !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(
+      deploymentId,
+    )
+  )
+    return configurationError("Set a valid locked deployment UUID.");
+  return { origin: origin(), deploymentId, token };
+}
+// The locked deployment works on its own: a missing or rejected MAIN token
+// must not block it (and vice versa). Team mode only; prepare mode refuses.
+export function requireLocked() {
+  const selected = mode();
+  if (selected !== "team")
+    throw new PaiflowError(
+      403,
+      {
+        code: "PREPARATION_MODE",
+        message: "Locked padala runs in team mode only.",
+      },
+      null,
+      null,
+    );
+  lockedConfig();
+}
+// Public facts only (no token): where it lives and when it releases.
+export type LockedPublic = { deploymentUrl: string; unlockAt: string } | null;
+export function lockedPublicConfig(): LockedPublic {
+  try {
+    if (mode() !== "team") return null;
+    const config = lockedConfig();
+    const unlockAt = process.env.PUNDAR_LOCKED_UNLOCK_AT?.trim() ?? "";
+    if (!Number.isFinite(Date.parse(unlockAt))) return null;
+    return {
+      deploymentUrl: new URL(`/deployments/${config.deploymentId}`, config.origin)
+        .href,
+      unlockAt: new Date(unlockAt).toISOString(),
+    };
+  } catch {
+    return null;
+  }
+}
+
 export function requireIntegration(): "demo" | "team" {
   const selected = mode();
   switch (selected) {
@@ -155,7 +210,11 @@ export function publicConfig(): PublicConfig {
     throw error;
   }
 }
-async function config(): Promise<Config> {
+async function config(target: Target = "main"): Promise<Config> {
+  if (target === "locked") {
+    requireLocked();
+    return lockedConfig();
+  }
   if (requireIntegration() === "team") return teamConfig();
   const platformOrigin = origin();
   const cache = demoCaches.get(platformOrigin) ?? {};
@@ -189,8 +248,9 @@ async function call<T>(
   query?: URLSearchParams,
   publicPath?: string,
   extraHeaders?: Record<string, string>,
+  target: Target = "main",
 ): Promise<T> {
-  const { origin, deploymentId, token } = await config();
+  const { origin, deploymentId, token } = await config(target);
   const url = new URL(
     publicPath
       ? `api/deployments/${deploymentId}/${publicPath}`
@@ -281,11 +341,22 @@ export function executeHash(xdr: string): string {
     );
   }
 }
-export const prepareExecute = async (input: {
-  from: string;
-  amount: string;
-}) => {
-  const prepared = await call<Prepared>("execute", "POST", input);
+export const prepareExecute = async (
+  input: {
+    from: string;
+    amount: string;
+  },
+  target: Target = "main",
+) => {
+  const prepared = await call<Prepared>(
+    "execute",
+    "POST",
+    input,
+    undefined,
+    undefined,
+    undefined,
+    target,
+  );
   if (
     prepared.network !== "testnet" ||
     prepared.networkPassphrase !== Networks.TESTNET
@@ -299,10 +370,10 @@ export const prepareExecute = async (input: {
   return { ...prepared, txHash: executeHash(prepared.xdr) };
 };
 /** Recover old records from their original envelope, never from a replacement. */
-export async function reconcileExecute(xdr: string) {
+export async function reconcileExecute(xdr: string, target: Target = "main") {
   const txHash = executeHash(xdr);
   try {
-    return { ...(await transactionStatus(txHash)), txHash };
+    return { ...(await transactionStatus(txHash, target)), txHash };
   } catch (error) {
     // Absent deployment association / RPC history is uncertainty, not expiry proof.
     if (
@@ -318,6 +389,7 @@ export const submitExecute = (
   input: { signedXdr: string },
   wait = true,
   preparationRequestId?: string,
+  target: Target = "main",
 ) =>
   call<Submitted>(
     "execute/submit",
@@ -328,6 +400,7 @@ export const submitExecute = (
     preparationRequestId
       ? { "x-preparation-request-id": preparationRequestId }
       : undefined,
+    target,
   );
 
 export type EventItem = {
@@ -347,12 +420,13 @@ export type EventPage = {
 };
 export function listEvents(
   input: { cursor?: string; limit?: number; txHash?: string } = {},
+  target: Target = "main",
 ) {
   const query = new URLSearchParams();
   if (input.cursor) query.set("cursor", input.cursor);
   if (input.limit !== undefined) query.set("limit", String(input.limit));
   if (input.txHash) query.set("txHash", input.txHash);
-  return call<EventPage>("events", "GET", undefined, query);
+  return call<EventPage>("events", "GET", undefined, query, undefined, undefined, target);
 }
 
 // One page at a time in your server polling handler:
@@ -442,11 +516,27 @@ import type {
   DeploymentBalances,
   SwapQuote,
 } from "@/lib/api-types";
-export const capabilities = () =>
-  call<DeploymentCapabilities>("capabilities", "GET");
+export const capabilities = (target: Target = "main") =>
+  call<DeploymentCapabilities>(
+    "capabilities",
+    "GET",
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    target,
+  );
 export const balances = () => call<DeploymentBalances>("balances", "GET");
-export const transactionStatus = (txHash: string) =>
-  call<TransactionStatus>(`transactions/${encodeURIComponent(txHash)}`, "GET");
+export const transactionStatus = (txHash: string, target: Target = "main") =>
+  call<TransactionStatus>(
+    `transactions/${encodeURIComponent(txHash)}`,
+    "GET",
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    target,
+  );
 export const swapQuote = (input: { amount: string; nodeId?: string }) =>
   call<SwapQuote>(
     "swap-quote",
