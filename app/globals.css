@@ -1055,92 +1055,390 @@ body:has(.cta-band) .site-footer {
   color: var(--c);
 }
 
-/* ---------- About page ---------- */
-.page-head {
-  padding: clamp(28px, 5vw, 56px) 0 0;
-}
-.page-head .lead {
-  max-width: 34em;
-}
-.section-about {
-  padding-top: clamp(40px, 5vw, 64px);
+/* ---------- About: a postcard from TypeShift ---------- */
+.about {
+  display: grid;
+  gap: clamp(36px, 5vw, 56px);
+  padding: clamp(28px, 5vw, 56px) 0 clamp(48px, 6vw, 0px);
 }
 
-.about-grid {
-  display: grid;
-  gap: 56px;
+/* The postcard: message on the left, address side on the right. */
+.postcard {
+  overflow: hidden;
 }
-@media (min-width: 960px) {
-  .about-grid {
-    grid-template-columns: 6fr 5fr;
-    gap: 80px;
+.postcard-body {
+  display: grid;
+}
+@media (min-width: 900px) {
+  .postcard-body {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
   }
 }
-.about-story {
+.postcard-message {
   display: grid;
-  gap: 18px;
+  gap: 16px;
   align-content: start;
-  max-width: 36em;
+  padding: clamp(28px, 5vw, 56px);
+  max-width: 40em;
+  font-size: 1.08rem;
+  line-height: 1.7;
+  color: var(--ink-2);
 }
-.definition {
-  margin: 8px 0 10px;
-  padding: 22px 0 22px 24px;
-  border-left: 1px solid var(--clay);
-}
-.definition-word {
-  font-size: clamp(3.2rem, 7vw, 5rem);
+.salutation {
+  font-size: clamp(2.2rem, 4vw, 3rem);
   font-style: italic;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.figure-inline {
+  font-weight: 800;
+  font-size: 1.22em;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.figure-drop {
   color: var(--clay);
 }
-.definition-meta {
-  margin-top: 6px;
-  font-size: 0.85rem;
-  letter-spacing: 0.06em;
-  color: var(--ink-3);
+.figure-inline.plan-household,
+.figure-inline.plan-student,
+.figure-inline.plan-savings {
+  color: var(--c);
 }
-.definition-body {
-  margin-top: 12px;
-  font-family: var(--font-display), Georgia, serif;
-  font-size: 1.55rem;
-  line-height: 1.25;
-}
-.team {
+.signoff {
   display: grid;
-  gap: 28px;
-  align-content: start;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 20px;
+  border-top: 1px dashed var(--line-strong);
 }
-.team-head .title {
-  margin-bottom: 10px;
+.signoff-line {
+  font-style: italic;
 }
-.team-list {
+.signatures {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
+  gap: 4px 48px;
+}
+@media (min-width: 560px) {
+  .signatures {
+    grid-template-columns: repeat(2, max-content);
+  }
+}
+.signatures li {
+  font-size: 1.65rem;
+  font-style: italic;
+  line-height: 1.25;
+  color: var(--ink);
+}
+.signoff-team {
+  font-size: 0.88rem;
+  color: var(--ink-3);
+}
+.signoff-team strong {
+  color: var(--ink);
+}
+
+.postcard-address {
+  display: grid;
+  align-content: start;
+  gap: clamp(40px, 6vw, 88px);
+  padding: clamp(28px, 5vw, 56px);
   border-top: 1px solid var(--line);
 }
-.team-list li {
-  display: grid;
-  grid-template-columns: auto 1fr;
+@media (min-width: 900px) {
+  .postcard-address {
+    border-top: 0;
+    border-left: 1px solid var(--line);
+  }
+}
+.address-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   gap: 16px;
-  align-items: center;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--line);
 }
-.monogram {
+.postcard-label {
   display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: var(--paper-2);
-  color: var(--clay-deep);
-  font-size: 1.4rem;
-  font-style: italic;
-  letter-spacing: 0;
+  gap: 6px;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--ink-3);
 }
-.team-name {
-  font-size: 1.08rem;
+.postcard-label span {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--clay);
+}
+@media (max-width: 899px) {
+  .postcard-label {
+    display: none;
+  }
+  .address-top {
+    justify-content: flex-end;
+  }
+}
+.stamp-corner {
+  position: relative;
+  flex: none;
+  width: 168px;
+  margin: 4px 8px 12px 0;
+}
+.postmark {
+  position: absolute;
+  left: -64px;
+  bottom: -64px;
+  width: 128px;
+  height: 128px;
+  rotate: -12deg;
+  pointer-events: none;
+}
+.postmark circle {
+  fill: none;
+  stroke: rgb(29 24 20 / 0.55);
+  stroke-width: 2;
+}
+.postmark text {
+  fill: rgb(29 24 20 / 0.6);
+  font-family: var(--font-body), sans-serif;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.postmark .pm-date {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 19px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+.cancel {
+  position: absolute;
+  left: -46px;
+  top: 64px;
+  width: 150px;
+  height: 46px;
+  pointer-events: none;
+}
+.cancel path {
+  fill: none;
+  stroke: rgb(29 24 20 / 0.4);
+  stroke-width: 2;
+}
+.address {
+  margin: 0;
+  display: grid;
+  gap: 26px;
+}
+.address dt {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--clay);
+}
+.address dd {
+  margin: 0;
+  padding: 6px 0 4px;
+  border-bottom: 1px solid var(--line-strong);
+  font-size: 1.55rem;
+  font-style: italic;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.address dd + dd {
+  font-size: 1.3rem;
+  color: var(--ink-3);
+}
+
+/* Postage stamps: perforated edge via mask, shadow on the wrapper. */
+.postage-stamp {
+  filter: drop-shadow(0 8px 14px rgb(70 45 20 / 0.18));
+  transition: rotate 0.4s var(--ease), translate 0.4s var(--ease);
+}
+.postage-frame {
+  --r: 5px;
+  position: relative;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  text-align: center;
+  padding: calc(2.4 * var(--r) + 14px) calc(2.4 * var(--r) + 12px);
+  background: var(--tone-bg);
+  color: var(--tone-ink);
+  mask:
+    radial-gradient(var(--r), #0000 97%, #000) round calc(-1.5 * var(--r))
+      calc(-1.5 * var(--r)) / calc(3 * var(--r)) calc(3 * var(--r)),
+    linear-gradient(#000 0 0) no-repeat 50% / calc(100% - 3 * var(--r))
+      calc(100% - 3 * var(--r));
+}
+.postage-frame::before {
+  content: "";
+  position: absolute;
+  inset: calc(2.4 * var(--r));
+  border: 1px solid var(--tone-line);
+  pointer-events: none;
+}
+.tone-ink {
+  --tone-bg: var(--ink);
+  --tone-ink: #fff8f1;
+  --tone-line: rgb(255 248 240 / 0.3);
+}
+.tone-household {
+  --tone-bg: #f6e2d6;
+  --tone-ink: var(--ink);
+  --tone-line: rgb(176 74 38 / 0.45);
+  --c: var(--clay);
+}
+.tone-student {
+  --tone-bg: #f3ead0;
+  --tone-ink: var(--ink);
+  --tone-line: rgb(168 134 14 / 0.5);
+  --c: var(--saffron);
+}
+.tone-savings {
+  --tone-bg: #d9ece6;
+  --tone-ink: var(--ink);
+  --tone-line: rgb(0 132 112 / 0.45);
+  --c: var(--sea);
+}
+.stamp-corner .postage-frame {
+  padding-block: 26px;
+}
+.stamp-mark {
+  font-size: 1.9rem;
+  line-height: 1;
+}
+.stamp-corner .ribbon {
+  width: 92px;
+}
+.stamp-split {
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+.stamp-foot {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgb(255 248 240 / 0.6);
+}
+
+/* Sa bilang: three stat stamps */
+.stamp-strip {
+  display: grid;
+  gap: 24px;
+}
+.stamp-row {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 28px;
+}
+@media (min-width: 760px) {
+  .stamp-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 32px;
+  }
+}
+.stat-stamp:hover {
+  rotate: 0deg !important;
+  translate: 0 -4px;
+}
+.stat-stamp .postage-frame {
+  height: 100%;
+  align-content: center;
+  padding-block: 34px;
+}
+.stat-value {
+  font-size: clamp(3rem, 5vw, 3.8rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--c);
+}
+.stat-body {
+  max-width: 18em;
+  font-size: 0.98rem;
+  line-height: 1.45;
+}
+.stat-source {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+}
+
+/* Sources, then a full-width closing row */
+.about-sources {
+  display: grid;
+  gap: 12px;
+}
+.source-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px 40px;
+  font-size: 0.95rem;
+}
+@media (min-width: 760px) {
+  .source-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.source-list li {
+  display: grid;
+  gap: 2px;
+}
+.source-outlet {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.source-list .link {
+  justify-self: start;
+}
+.about-cta {
+  display: grid;
+  gap: 24px;
+  align-items: center;
+  padding: clamp(28px, 4vw, 40px) 0 0;
+  border-top: 1px dashed var(--line-strong);
+}
+.about-cta .muted {
+  margin-top: 8px;
+}
+.about-cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+@media (min-width: 760px) {
+  .about-cta {
+    grid-template-columns: 1fr auto;
+    gap: 40px;
+  }
+}
+@media (max-width: 559px) {
+  .about-cta-actions .btn {
+    width: 100%;
+  }
+}
+.read-on-title {
+  font-size: clamp(2.2rem, 4vw, 3rem);
+  line-height: 1.02;
 }
 
 /* ---------- Auth ---------- */
