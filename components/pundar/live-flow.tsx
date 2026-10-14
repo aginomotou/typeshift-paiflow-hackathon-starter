@@ -54,7 +54,8 @@ export function LiveFlow({ embedUrl }: { embedUrl: string }) {
       <figure className="live-flow-qr">
         <QrCode value={embedUrl} label="QR papunta sa live na flow sa Paiflow" size={168} />
         <figcaption className="muted small">
-          I-scan para buksan ang live na flow sa phone.
+          I-scan gamit ang camera ng phone (hindi ang wallet) para buksan ang
+          live na flow.
         </figcaption>
       </figure>
     </section>

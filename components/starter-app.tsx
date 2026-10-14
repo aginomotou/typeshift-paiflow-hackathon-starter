@@ -410,12 +410,19 @@ export function StarterApp({
                   label={`QR para magpadala ng ${amount} USDC sa Paiflow payment page`}
                   size={132}
                 />
-                <p className="small muted">
-                  I-scan para buksan ang payment page ng Paiflow na may{" "}
-                  <strong>{amount} USDC</strong>. Parehong flow: dadaan pa rin
-                  sa {MIN_USDC} USDC na minimum at sa 60 / 15 / 25 na hati.
-                  Lalabas ang resulta sa Kasaysayan sa ibaba.
-                </p>
+                <div className="small muted stack-sm">
+                  <p>
+                    I-scan gamit ang <strong>camera ng phone</strong>, hindi ang
+                    scanner ng wallet. Web link ito sa payment page ng Paiflow
+                    na may <strong>{amount} USDC</strong>; doon ikokonekta ang
+                    wallet.
+                  </p>
+                  <p>
+                    Parehong flow: dadaan pa rin sa {MIN_USDC} USDC na minimum
+                    at sa 60 / 15 / 25 na hati. Lalabas ang resulta sa
+                    Kasaysayan sa ibaba.
+                  </p>
+                </div>
               </div>
               <a className="link small" href={phoneUrl} target="_blank" rel="noreferrer">
                 Buksan ang payment page ↗
