@@ -54,11 +54,11 @@ export function LoginView({ walletEnabled }: { walletEnabled: boolean }) {
           <Ribbon size="md" />
         </div>
         <div className="panel stack">
-          <div>
+          <div className="stack-sm">
             <h1 className="display h1-auth">
-              Maligayang <em>pagbabalik.</em>
+              Welcome <em>back.</em>
             </h1>
-            <p className="lead">Sino ang papasok ngayon?</p>
+            <p className="lead">Sino ang magla-login?</p>
           </div>
 
           <div
@@ -102,9 +102,9 @@ export function LoginView({ walletEnabled }: { walletEnabled: boolean }) {
           <div className="explain">
             <span className="explain-icon"><KeyIcon /></span>
             <p className="small">
-              Walang password. Bubuksan namin ang <strong>Freighter</strong>{" "}
-              (ang wallet app mo) para patunayang sa&apos;yo ang account.
-              Hinding-hindi namin hihingin ang secret words mo.
+              No password needed. We&apos;ll open <strong>Freighter</strong>{" "}
+              (your wallet app) to confirm the account is yours. We will never
+              ask for your secret words.
             </p>
           </div>
 

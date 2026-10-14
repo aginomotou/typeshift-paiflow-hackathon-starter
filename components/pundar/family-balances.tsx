@@ -1,6 +1,6 @@
 "use client";
 import type { CSSProperties } from "react";
-import { formatUsdc, shortAddress, accountLink } from "@/lib/format";
+import { formatUsdc, formatUsdc2, shortAddress, accountLink } from "@/lib/format";
 import {
   SHARES,
   type PundarRecipient,
@@ -73,20 +73,28 @@ export function FamilyBalances({
               </div>
               <h3>{r.tl}</h3>
               <p className="muted small">{r.who}</p>
-              <p
-                key={now ?? "none"}
-                className={`bal${delta !== null && delta > 0n ? " pop" : ""}`}
-              >
-                {!live
-                  ? "—"
-                  : !b
-                    ? "…"
-                    : b.status === "ok" && now !== undefined
-                      ? formatUsdc(now)
-                      : b.status === "no_trustline"
-                        ? "Walang USDC trustline"
-                        : "Hindi pa funded"}
-              </p>
+              {!live ? (
+                <p className="bal">—</p>
+              ) : !b ? (
+                <p className="bal">
+                  <span className="bal-skeleton" />
+                  <span className="visually-hidden">Binabasa ang balanse…</span>
+                </p>
+              ) : b.status === "ok" && now !== undefined ? (
+                <p
+                  key={now}
+                  className={`bal${delta !== null && delta > 0n ? " pop" : ""}`}
+                  title={`${formatUsdc(now)} USDC`}
+                >
+                  {formatUsdc2(now)}
+                </p>
+              ) : (
+                <p className="bal-status">
+                  {b.status === "no_trustline"
+                    ? "Walang USDC trustline"
+                    : "Hindi pa funded"}
+                </p>
+              )}
               {delta !== null && delta > 0n && (
                 <p className="delta">+{formatUsdc(delta.toString())} ngayon</p>
               )}

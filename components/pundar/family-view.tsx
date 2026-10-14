@@ -44,11 +44,11 @@ export function FamilyView({
           <p className="eyebrow">Para sa pamilya</p>
           <h1 className="display h1-dash">
             {firstName ? `Hi, ${firstName}. ` : ""}
-            <em>Walang tanungan</em>, kita ng lahat.
+            Kita ng <em>lahat.</em>
           </h1>
           <p className="lead">
-            Dito makikita ang bawat padala at kung saan napunta ang bawat
-            bahagi — kahit hindi ka magtanong.
+            Every padala and where each share went, right here. No need to
+            ask.
           </p>
         </div>
       </div>

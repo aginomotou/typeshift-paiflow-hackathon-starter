@@ -27,8 +27,8 @@ export const SHARES = [
     key: "savings",
     label: "OFW savings",
     tl: "Ipon ng OFW",
-    who: "Wallet ng OFW lang",
-    note: "Para sa pag-uwi mo balang araw.",
+    who: "OFW lang ang may hawak",
+    note: "Para sa pag-uwi balang araw.",
     bps: 2500,
   },
 ] as const;

@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-10-14T02:15:31.803Z",
+        "reason": "Claude triage: L1505 .member::before is a full-width 4px TOP bar encoding each share's colour on family balances (pre-existing), not a side-tab accent"
+      }
+    ]
+  }
+}

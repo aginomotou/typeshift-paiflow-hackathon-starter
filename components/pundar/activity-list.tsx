@@ -3,7 +3,19 @@ import type { EventItem } from "@/lib/paiflow";
 import { txLink } from "@/lib/format";
 
 const humanize = (s: string) =>
-  s.replace(/[_.]+/g, " ").replace(/^\w/, (c) => c.toUpperCase());
+  s
+    .replace(/[_.]+/g, " ")
+    .toLowerCase()
+    .replace(/^\w/, (c) => c.toUpperCase());
+
+// Plain names for the flow's events; unknown kinds fall back to humanize.
+const LABEL: Record<string, string> = {
+  RECEIVE: "Natanggap ang padala",
+  PAYOUT: "Naipadala ang mga hati",
+};
+const label = (e: EventItem) =>
+  LABEL[e.kind.toUpperCase()] ??
+  `${humanize(e.kind)}${e.topic ? ` · ${humanize(e.topic)}` : ""}`;
 
 export function ActivityList({
   events,
@@ -46,10 +58,7 @@ export function ActivityList({
           <ol className="activity">
             {events.map((e) => (
               <li key={e.eventId}>
-                <span className="what">
-                  {humanize(e.kind)}
-                  {e.topic ? ` · ${humanize(e.topic)}` : ""}
-                </span>
+                <span className="what">{label(e)}</span>
                 <a className="link small" href={txLink(e.txHash)} target="_blank" rel="noreferrer">
                   Resibo ↗
                 </a>

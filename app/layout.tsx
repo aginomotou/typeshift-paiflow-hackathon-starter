@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Instrument_Serif, Plus_Jakarta_Sans } from "next/font/google";
 import { SiteHeader } from "@/components/pundar/site-header";
+import { SiteFooter } from "@/components/pundar/site-footer";
 import "./globals.css";
 
 const display = Instrument_Serif({
@@ -28,12 +29,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <body>
         <SiteHeader />
         {children}
-        <footer className="site-footer">
-          <div className="container footer-inner">
-            <span className="display footer-mark">Pundar</span>
-            <span>Prototype sa Stellar testnet gamit ang Paiflow. Walang totoong pera.</span>
-          </div>
-        </footer>
+        <SiteFooter />
       </body>
     </html>
   );

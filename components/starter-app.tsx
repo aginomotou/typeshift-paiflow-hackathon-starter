@@ -125,7 +125,7 @@ export function StarterApp({
             Kumusta{firstName ? `, ${firstName}` : ""}. <em>Payday na?</em>
           </h1>
           <p className="lead">
-            Isang padala lang. Hahatiin agad ayon sa plano ng pamilya.
+            Send once, and Pundar splits it the way your family agreed.
           </p>
         </div>
       </div>
@@ -172,7 +172,7 @@ export function StarterApp({
       <div className="card master split-7-5 send-card">
         <div className="airmail" aria-hidden />
         <section className="panel" aria-labelledby="send-title">
-          <h2 id="send-title" className="h2">
+          <h2 id="send-title" className="h2 send-title">
             Magpadala
           </h2>
           {enabled && !discovery && !discoveryError && (
@@ -233,16 +233,26 @@ export function StarterApp({
 
             <button
               className="btn btn-primary btn-block btn-lg"
-              disabled={!canPay || workflow.blocked || !address}
+              // No wallet yet: the main button connects it instead of sitting disabled.
+              type={enabled && !address ? "button" : "submit"}
+              onClick={enabled && !address ? () => void connect() : undefined}
+              disabled={
+                enabled && !address
+                  ? workflow.busy
+                  : !canPay || workflow.blocked || !address
+              }
             >
               {workflow.busy
                 ? "Hinihintay ang Freighter…"
-                : `Ipadala ang ${preview ? amount : "…"} USDC`}
-              <span className="arrow" aria-hidden>→</span>
+                : enabled && !address
+                  ? "Ikonekta muna ang wallet"
+                  : `Ipadala ang ${preview ? amount : "…"} USDC`}
+              {!workflow.busy && <span className="arrow" aria-hidden>→</span>}
             </button>
             <p className="muted small">
-              Buksan muna ang Freighter. Mag-e-expire ang transaksyon sa loob ng
-              mga 3 minuto.
+              {enabled && !address
+                ? "Ikonekta muna ang Freighter wallet mo para makapagpadala."
+                : "Mag-e-expire ang transaksyon sa loob ng mga 3 minuto pagkapirma."}
             </p>
           </form>
         </section>

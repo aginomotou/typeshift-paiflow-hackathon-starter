@@ -29,6 +29,9 @@ export function SiteHeader() {
               <Link href="/family" aria-current={current("/family")}>
                 Pamilya
               </Link>
+              <Link href="/about" aria-current={current("/about")} className="hide-sm">
+                Tungkol
+              </Link>
               <button
                 className="nav-quiet"
                 onClick={() => {
@@ -43,6 +46,9 @@ export function SiteHeader() {
             <>
               <Link href="/#paano" className="hide-sm">
                 Paano
+              </Link>
+              <Link href="/about" aria-current={current("/about")}>
+                Tungkol
               </Link>
               <Link href="/login" aria-current={current("/login")}>
                 Mag-login

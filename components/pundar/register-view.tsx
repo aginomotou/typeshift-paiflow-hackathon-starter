@@ -64,7 +64,7 @@ export function RegisterView({
         <div className="panel panel-clay auth-art">
           <p className="eyebrow eyebrow-light">Bagong account</p>
           <p className="display auth-quote">
-            Tatlong hakbang. <em>Isang plano</em> para sa buong pamilya.
+            Three quick steps. <em>One plan</em> for the whole family.
           </p>
           <Ribbon size="md" />
         </div>
