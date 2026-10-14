@@ -1,22 +1,22 @@
 "use client";
 import type { EventItem } from "@/lib/paiflow";
-import { txLink } from "@/lib/format";
+import { formatUsdc, txLink } from "@/lib/format";
+import {
+  groupPadala,
+  returnedReason,
+  returnedTitle,
+  type Padala,
+} from "@/lib/pundar-activity";
 
-const humanize = (s: string) =>
-  s
-    .replace(/[_.]+/g, " ")
-    .toLowerCase()
-    .replace(/^\w/, (c) => c.toUpperCase());
+function describe(p: Padala) {
+  if (p.outcome === "split")
+    return { title: "Nahati ang padala", note: "60 / 15 / 25 sa pamilya", tone: "ok" };
+  if (p.outcome === "refunded")
+    return { title: returnedTitle(p), note: returnedReason(p.amountStroops), tone: "back" };
+  return { title: "Hinihintay ang resulta", note: "Hinihintay pa ang detalye mula sa flow", tone: "muted" };
+}
 
-// Plain names for the flow's events; unknown kinds fall back to humanize.
-const LABEL: Record<string, string> = {
-  RECEIVE: "Natanggap ang padala",
-  PAYOUT: "Naipadala ang mga hati",
-};
-const label = (e: EventItem) =>
-  LABEL[e.kind.toUpperCase()] ??
-  `${humanize(e.kind)}${e.topic ? ` · ${humanize(e.topic)}` : ""}`;
-
+// One row per transaction (a padala), not one per contract event.
 export function ActivityList({
   events,
   error,
@@ -28,6 +28,7 @@ export function ActivityList({
   enabled: boolean;
   deploymentUrl?: string | null;
 }) {
+  const padala = groupPadala(events);
   return (
     <section aria-labelledby="activity-title" className="stack">
       <div className="section-head">
@@ -48,28 +49,39 @@ export function ActivityList({
         {!enabled && (
           <p className="muted">Live feed is disabled in preparation mode.</p>
         )}
-        {enabled && !events.length && (
+        {enabled && !padala.length && (
           <p className="muted">
             Wala pang bagong galaw. Puwedeng ma-late nang isang minuto ang
             listahan; tingnan muna ang resibo bago magpadala ulit.
           </p>
         )}
-        {!!events.length && (
+        {!!padala.length && (
           <ol className="activity">
-            {events.map((e) => (
-              <li key={e.eventId}>
-                <span className="what">{label(e)}</span>
-                <a className="link small" href={txLink(e.txHash)} target="_blank" rel="noreferrer">
-                  Resibo ↗
-                </a>
-                <time className="muted small" dateTime={e.occurredAt}>
-                  {new Date(e.occurredAt).toLocaleString("en-PH", {
-                    dateStyle: "medium",
-                    timeStyle: "short",
-                  })}
-                </time>
-              </li>
-            ))}
+            {padala.map((p) => {
+              const o = describe(p);
+              return (
+                <li key={p.txHash} className={`activity-${o.tone}`}>
+                  <span className="what">
+                    {o.title}
+                    {p.amountStroops && (
+                      <span className="num"> · {formatUsdc(p.amountStroops)} USDC</span>
+                    )}
+                  </span>
+                  <a className="link small" href={txLink(p.txHash)} target="_blank" rel="noreferrer">
+                    Resibo ↗
+                  </a>
+                  <span className="muted small">
+                    <span className="outcome-note">{o.note}</span> ·{" "}
+                    <time dateTime={p.occurredAt}>
+                      {new Date(p.occurredAt).toLocaleString("en-PH", {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
+                    </time>
+                  </span>
+                </li>
+              );
+            })}
           </ol>
         )}
       </div>

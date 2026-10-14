@@ -5,6 +5,9 @@ import { useActivity } from "@/lib/hooks/use-activity";
 import { useBalances, useDiscovery } from "@/lib/hooks/use-pundar";
 import { SHARES, type PundarRecipient } from "@/lib/pundar-split";
 import { useProfile } from "@/lib/profile";
+import { groupPadala } from "@/lib/pundar-activity";
+import { hostedLinks } from "@/lib/pundar-links";
+import { LiveFlow } from "@/components/pundar/live-flow";
 import { Ribbon } from "@/components/pundar/ribbon";
 import { FamilyBalances } from "@/components/pundar/family-balances";
 import { ActivityList } from "@/components/pundar/activity-list";
@@ -29,6 +32,12 @@ export function FamilyView({
     : "unconfigured";
   const activity = useActivity(enabled && !!discovery, scope);
   const family = useBalances(enabled && !!recipients);
+  // The newest padala from the feed, so a returned one is flagged here too.
+  const latest = groupPadala(activity.events)[0];
+  const last =
+    latest && (latest.outcome === "split" || latest.outcome === "refunded")
+      ? { ...latest, outcome: latest.outcome }
+      : null;
   const role = profile?.role;
   const mine =
     role === "household" || role === "student"
@@ -105,12 +114,18 @@ export function FamilyView({
         </div>
       </div>
 
+      {(() => {
+        const links = hostedLinks(config.deploymentUrl);
+        return links ? <LiveFlow embedUrl={links.embedUrl} /> : null;
+      })()}
+
       <FamilyBalances
         recipients={recipients}
         enabled={enabled}
         balances={family.balances}
         error={family.error}
         highlight={mine?.key}
+        last={last}
         onRefresh={() => void family.load()}
       />
 

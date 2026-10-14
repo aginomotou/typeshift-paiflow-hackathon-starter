@@ -7,6 +7,15 @@ import {
   type ShareKey,
 } from "@/lib/pundar-split";
 import type { Balances, Snapshot } from "@/lib/hooks/use-pundar";
+import {
+  returnedReason,
+  returnedTitle,
+  type Padala,
+} from "@/lib/pundar-activity";
+
+export type LastPadala = Pick<Padala, "amountStroops" | "from" | "returnedTo"> & {
+  outcome: "split" | "refunded";
+};
 
 const COLOR: Record<ShareKey, string> = {
   household: "var(--clay)",
@@ -23,6 +32,7 @@ export function FamilyBalances({
   before = null,
   expected = null,
   highlight,
+  last = null,
   onRefresh,
 }: {
   recipients: PundarRecipient[] | null;
@@ -32,6 +42,8 @@ export function FamilyBalances({
   before?: Snapshot | null;
   expected?: Record<ShareKey, string> | null;
   highlight?: ShareKey;
+  // The latest padala's outcome, so a returned one is never mistaken for a split.
+  last?: LastPadala | null;
   onRefresh: () => void;
 }) {
   const family: PundarRecipient[] =
@@ -52,6 +64,27 @@ export function FamilyBalances({
         </button>
       </div>
       {error && <p className="notice alert" role="alert">{error}</p>}
+      {last?.outcome === "refunded" && (
+        <div className="last-padala last-back" role="status">
+          <span className="last-badge">Ibinalik</span>
+          <p>
+            <strong>
+              {last.amountStroops ? `${formatUsdc(last.amountStroops)} USDC` : "Ang huling padala"}
+            </strong>{" "}
+            ay hindi nahati: <span className="last-reason">{returnedReason(last.amountStroops)}</span>.{" "}
+            {returnedTitle(last)}. Walang nagbago sa mga balanse sa ibaba.
+          </p>
+        </div>
+      )}
+      {last?.outcome === "split" && last.amountStroops && (
+        <div className="last-padala last-ok" role="status">
+          <span className="last-badge">Nahati</span>
+          <p>
+            <strong>{formatUsdc(last.amountStroops)} USDC</strong> ay nahati sa
+            60 / 15 / 25. Makikita ang dagdag sa bawat bahagi sa ibaba.
+          </p>
+        </div>
+      )}
       <div className="card family">
         {family.map((r) => {
           const b = balances?.balances.find((x) => x.key === r.key);

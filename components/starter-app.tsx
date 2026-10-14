@@ -1,7 +1,17 @@
 "use client";
-import { useEffect, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import Link from "next/link";
-import type { PublicConfig } from "@/lib/paiflow";
+import type { EventPage, PublicConfig } from "@/lib/paiflow";
+import { browserRequest } from "@/lib/browser-api";
+import {
+  readPadala,
+  returnedReason,
+  returnedTitle,
+  type PadalaOutcome,
+} from "@/lib/pundar-activity";
+import { Toast, type ToastMessage } from "@/components/pundar/toast";
+import { QrCode } from "@/components/pundar/qr-code";
+import { hostedLinks, triggerWithAmount } from "@/lib/pundar-links";
 import { toStroops } from "@/lib/amount";
 import { connectWallet, refreshWallet } from "@/lib/wallet";
 import { useWalletOperation } from "@/lib/hooks/use-wallet-operation";
@@ -12,7 +22,12 @@ import {
   useDiscovery,
   type Snapshot,
 } from "@/lib/hooks/use-pundar";
-import { SHARES, expectedSplit, type PundarRecipient } from "@/lib/pundar-split";
+import {
+  MIN_PADALA_STROOPS,
+  SHARES,
+  expectedSplit,
+  type PundarRecipient,
+} from "@/lib/pundar-split";
 import { formatUsdc, shortAddress, txLink } from "@/lib/format";
 import { useProfile } from "@/lib/profile";
 import { Ribbon } from "@/components/pundar/ribbon";
@@ -20,6 +35,7 @@ import { FamilyBalances } from "@/components/pundar/family-balances";
 import { ActivityList } from "@/components/pundar/activity-list";
 
 const QUICK = ["50", "100", "200"];
+const MIN_USDC = formatUsdc(MIN_PADALA_STROOPS);
 
 // The OFW's send screen. Payment path: browser → /api/pay → Paiflow →
 // Freighter signature → /api/pay submit. Recovery logic lives in the hook.
@@ -64,10 +80,83 @@ export function StarterApp({
   }, [enabled, configIdentity]);
 
   const resultHash = workflow.result?.txHash;
+  const resultStatus = workflow.result?.status;
   const loadFamily = family.load;
   useEffect(() => {
     if (resultHash) void loadFamily();
   }, [resultHash, loadFamily]);
+
+  // SUCCESS only means the transaction landed. A padala under the minimum
+  // also "succeeds" because the flow pays it back, so read this transaction's
+  // events to tell a real split from a refund before celebrating.
+  const [outcome, setOutcome] = useState<PadalaOutcome | "checking" | null>(null);
+  // Who received a returned padala: the flow's fixed refund wallet.
+  const [returnedTo, setReturnedTo] = useState<string | null>(null);
+  useEffect(() => {
+    setReturnedTo(null);
+    if (!resultHash || resultStatus !== "SUCCESS") {
+      setOutcome(null);
+      return;
+    }
+    let stopped = false;
+    setOutcome("checking");
+    void (async () => {
+      for (let attempt = 0; attempt < 4 && !stopped; attempt++) {
+        try {
+          const page = await browserRequest<EventPage>(
+            `/api/events?txHash=${resultHash}`,
+          );
+          const mine = page.items.filter((e) => e.txHash === resultHash);
+          if (mine.length) {
+            const read = readPadala(mine);
+            if (!stopped) {
+              setReturnedTo(read.returnedTo);
+              setOutcome(read.outcome);
+            }
+            return;
+          }
+        } catch {
+          // Feed hiccup: try again shortly; the receipt link still works.
+        }
+        await new Promise((r) => setTimeout(r, 2000));
+      }
+      if (!stopped) setOutcome("unknown");
+    })();
+    return () => {
+      stopped = true;
+    };
+  }, [resultHash, resultStatus]);
+
+  // Pop-up once per finished padala: split, returned, or failed.
+  const [toast, setToast] = useState<ToastMessage | null>(null);
+  const closeToast = useCallback(() => setToast(null), []);
+  useEffect(() => {
+    if (!resultHash) return;
+    const amount = sentStroops ? `${formatUsdc(sentStroops)} USDC` : "Ang padala";
+    if (resultStatus === "FAILED")
+      setToast({
+        id: resultHash,
+        tone: "bad",
+        title: "Hindi natuloy ang padala",
+        body: `${amount} · Hindi gumalaw ang pera. Puwede kang magpadala ulit.`,
+      });
+    else if (resultStatus === "SUCCESS" && outcome === "split")
+      setToast({
+        id: resultHash,
+        tone: "ok",
+        title: "Nahati na ang padala",
+        body: `${amount} → 60 / 15 / 25 sa pamilya`,
+      });
+    else if (resultStatus === "SUCCESS" && outcome === "refunded")
+      setToast({
+        id: resultHash,
+        tone: "back",
+        title: returnedTitle({ from: address || null, returnedTo }),
+        body: `${amount} · ${returnedReason(sentStroops)}`,
+      });
+    // sentStroops/address are read at the moment the outcome lands.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resultHash, resultStatus, outcome, returnedTo]);
 
   async function connect() {
     try {
@@ -113,7 +202,18 @@ export function StarterApp({
       return null;
     }
   })();
+  const belowMin = (() => {
+    try {
+      return BigInt(toStroops(amount)) < BigInt(MIN_PADALA_STROOPS);
+    } catch {
+      return false;
+    }
+  })();
   const expected = sentStroops ? expectedSplit(sentStroops) : null;
+  // Hosted Paiflow payment page for paying from a phone wallet (team mode only).
+  const links = hostedLinks(config.deploymentUrl);
+  const phoneUrl =
+    links && preview ? triggerWithAmount(links.triggerUrl, amount) : null;
   const result = workflow.result;
 
   return (
@@ -246,13 +346,17 @@ export function StarterApp({
                 ? "Hinihintay ang Freighter…"
                 : enabled && !address
                   ? "Ikonekta muna ang wallet"
-                  : `Ipadala ang ${preview ? amount : "…"} USDC`}
+                  : belowMin
+                    ? `Ipadala pa rin ang ${amount} USDC`
+                    : `Ipadala ang ${preview ? amount : "…"} USDC`}
               {!workflow.busy && <span className="arrow" aria-hidden>→</span>}
             </button>
-            <p className="muted small">
-              {enabled && !address
-                ? "Ikonekta muna ang Freighter wallet mo para makapagpadala."
-                : "Mag-e-expire ang transaksyon sa loob ng mga 3 minuto pagkapirma."}
+            <p className={belowMin ? "notice small" : "muted small"} role={belowMin ? "status" : undefined}>
+              {belowMin
+                ? `Mas mababa sa ${MIN_USDC} USDC na minimum ng plano. Susuriin ito ng Paiflow flow at ibabalik ayon sa plano. Walang mahahati.`
+                : enabled && !address
+                  ? "Ikonekta muna ang Freighter wallet mo para makapagpadala."
+                  : "Mag-e-expire ang transaksyon sa loob ng mga 3 minuto pagkapirma."}
             </p>
           </form>
         </section>
@@ -296,6 +400,28 @@ export function StarterApp({
           <Link className="link small" href="/family">
             Tingnan ang view ng pamilya →
           </Link>
+          {phoneUrl && (
+            <div className="phone-pay">
+              <hr className="rule" />
+              <p className="eyebrow">Magpadala gamit ang phone</p>
+              <div className="phone-pay-body">
+                <QrCode
+                  value={phoneUrl}
+                  label={`QR para magpadala ng ${amount} USDC sa Paiflow payment page`}
+                  size={132}
+                />
+                <p className="small muted">
+                  I-scan para buksan ang payment page ng Paiflow na may{" "}
+                  <strong>{amount} USDC</strong>. Parehong flow: dadaan pa rin
+                  sa {MIN_USDC} USDC na minimum at sa 60 / 15 / 25 na hati.
+                  Lalabas ang resulta sa Kasaysayan sa ibaba.
+                </p>
+              </div>
+              <a className="link small" href={phoneUrl} target="_blank" rel="noreferrer">
+                Buksan ang payment page ↗
+              </a>
+            </div>
+          )}
         </aside>
       </div>
 
@@ -311,42 +437,85 @@ export function StarterApp({
       )}
       {error && <p className="notice alert" role="alert">{error}</p>}
 
-      {result && (
-        <section
-          className={`card result ${result.status === "SUCCESS" ? "ok" : result.status === "PENDING" ? "wait" : "bad"}`}
-          aria-live="polite"
-        >
-          {result.status === "SUCCESS" && (
-            <span className="tick" aria-hidden>
-              <svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
-            </span>
-          )}
-          <div>
-            <h2 className="h2">
-              {result.status === "SUCCESS"
-                ? "Nahati na ang padala."
-                : result.status === "PENDING"
-                  ? "Pinoproseso pa…"
-                  : "Hindi natuloy ang padala."}
-            </h2>
-            {result.status === "SUCCESS" && expected && (
-              <p className="lead small-lead">
-                {SHARES.map((s) => `${formatUsdc(expected[s.key])} ${s.tl.toLowerCase()}`).join(" · ")}
-              </p>
+      {result && (() => {
+        const ok = result.status === "SUCCESS";
+        const split = ok && outcome === "split";
+        const refunded = ok && outcome === "refunded";
+        const tone = split
+          ? "ok"
+          : refunded
+            ? "back"
+            : result.status === "PENDING" || outcome === "checking"
+              ? "wait"
+              : ok
+                ? "wait"
+                : "bad";
+        return (
+          <section className={`card result ${tone}`} aria-live="polite">
+            {split && (
+              <span className="tick" aria-hidden>
+                <svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+              </span>
             )}
-            {result.status === "PENDING" && (
-              <p>
-                Baka pumasok pa ito. Pindutin ang &ldquo;Check again&rdquo; sa
-                ibaba — huwag munang magpadala ulit.
-              </p>
-            )}
-            <a className="btn btn-ghost btn-sm" href={txLink(result.txHash)} target="_blank" rel="noreferrer">
-              Tingnan ang resibo ↗
-            </a>
-            <p className="muted small hash">{result.txHash}</p>
-          </div>
-        </section>
-      )}
+            <div>
+              <h2 className="h2">
+                {split
+                  ? "Nahati na ang padala."
+                  : refunded
+                    ? "Ibinalik ang padala."
+                    : ok && outcome === "checking"
+                      ? "Sinusuri kung nahati…"
+                      : ok
+                        ? "Pumasok ang transaksyon."
+                        : result.status === "PENDING"
+                          ? "Pinoproseso pa…"
+                          : "Hindi natuloy ang padala."}
+              </h2>
+              {split && expected && (
+                <p className="lead small-lead">
+                  {SHARES.map((s) => `${formatUsdc(expected[s.key])} ${s.tl.toLowerCase()}`).join(" · ")}
+                </p>
+              )}
+              {refunded && (
+                <>
+                  <p className="returned-reason">
+                    {returnedReason(sentStroops)}
+                  </p>
+                  <p>
+                    {sentStroops ? `${formatUsdc(sentStroops)} USDC` : "Ang padala"}{" "}
+                    ay hindi nahati.{" "}
+                    {returnedTo && returnedTo === address
+                      ? "Ibinalik ito ng flow sa wallet mo."
+                      : returnedTo
+                        ? `Ayon sa plano, napunta ito sa ${shortAddress(returnedTo)}, ang wallet na itinakda ng flow para sa mga ibinabalik.`
+                        : "Ibinalik ito ng flow."}{" "}
+                    Walang nagbago sa mga balanse ng pamilya.
+                  </p>
+                </>
+              )}
+              {ok && outcome === "unknown" && (
+                <p>
+                  Pumasok ito sa Stellar, pero hindi pa namin makita kung
+                  nahati. Tingnan ang resibo bago magpadala ulit.
+                </p>
+              )}
+              {result.status === "PENDING" && (
+                <p>
+                  Baka pumasok pa ito. Pindutin ang &ldquo;Check again&rdquo; sa
+                  ibaba — huwag munang magpadala ulit.
+                </p>
+              )}
+              {result.status === "FAILED" && (
+                <p>Hindi gumalaw ang padala. Puwede kang magpadala ulit.</p>
+              )}
+              <a className="btn btn-ghost btn-sm" href={txLink(result.txHash)} target="_blank" rel="noreferrer">
+                Tingnan ang resibo ↗
+              </a>
+              <p className="muted small hash">{result.txHash}</p>
+            </div>
+          </section>
+        );
+      })()}
 
       {workflow.recovery && (
         <section className="card panel stack" aria-labelledby="recover-title">
@@ -381,9 +550,17 @@ export function StarterApp({
         balances={family.balances}
         error={family.error}
         before={before}
-        expected={expected}
+        expected={outcome === "split" ? expected : null}
+        last={
+          resultStatus === "SUCCESS" &&
+          (outcome === "split" || outcome === "refunded")
+            ? { outcome, amountStroops: sentStroops, from: address || null, returnedTo }
+            : null
+        }
         onRefresh={() => void family.load()}
       />
+
+      <Toast message={toast} onClose={closeToast} />
 
       <ActivityList
         events={activity.events}

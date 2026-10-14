@@ -1738,6 +1738,287 @@ body:has(.cta-band) .site-footer {
 .result.wait {
   border-color: #ead4a2;
 }
+/* Refunded padala: money went back to the sender, nothing was split. */
+.result.back {
+  border-color: #eec3b8;
+  background: linear-gradient(180deg, #fdf4ef, var(--card));
+}
+.activity-ok .outcome-note {
+  color: var(--sea);
+  font-weight: 650;
+}
+.activity-back .outcome-note,
+.returned-reason,
+.last-reason {
+  color: var(--danger);
+  font-weight: 700;
+}
+.returned-reason {
+  margin-bottom: 4px;
+}
+
+/* Kung saan napunta: what happened to the latest padala. */
+.last-padala {
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  padding: 14px 18px;
+  border-radius: var(--r);
+  border: 1px solid;
+  font-size: 0.95rem;
+}
+.last-back {
+  background: var(--danger-soft);
+  border-color: #eec3b8;
+}
+.last-ok {
+  background: var(--sea-soft);
+  border-color: #b9d9cf;
+}
+.last-badge {
+  flex: none;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff8f1;
+}
+.last-back .last-badge {
+  background: var(--danger);
+}
+.last-ok .last-badge {
+  background: var(--sea);
+}
+
+/* QR codes for Paiflow hosted pages (they can't be framed). */
+.qr {
+  flex: none;
+  padding: 8px;
+  border-radius: var(--r-sm);
+  background: #fffcf7;
+  border: 1px solid var(--line);
+}
+.qr img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+.qr-loading {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  background: var(--paper-2);
+}
+.phone-pay {
+  display: grid;
+  gap: 12px;
+}
+.phone-pay-body {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+/* Live na flow: the deployed graph, drawn, with a link to Paiflow's embed. */
+.live-flow {
+  display: grid;
+  gap: 28px;
+  padding: clamp(24px, 4vw, 40px);
+}
+@media (min-width: 900px) {
+  .live-flow {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 48px;
+  }
+}
+.live-flow-copy {
+  display: grid;
+  gap: 14px;
+  justify-items: start;
+}
+.live-flow-qr {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  text-align: center;
+  max-width: 200px;
+}
+.flow-steps {
+  list-style: none;
+  margin: 6px 0 4px;
+  padding: 0;
+  display: grid;
+  gap: 0;
+  width: 100%;
+}
+.flow-steps > li {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding: 0 0 18px 26px;
+}
+.flow-steps > li::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 8px;
+  bottom: -8px;
+  border-left: 2px dashed var(--line-strong);
+}
+.flow-steps > li::after {
+  content: "";
+  position: absolute;
+  left: 1px;
+  top: 6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--ink);
+}
+.flow-steps > li:last-child::before {
+  display: none;
+}
+.flow-node {
+  font-weight: 750;
+}
+.flow-branches {
+  display: grid !important;
+  gap: 10px !important;
+}
+@media (min-width: 560px) {
+  .flow-branches {
+    grid-template-columns: 1.4fr 1fr;
+  }
+}
+.flow-branch {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  padding: 12px 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+.flow-yes {
+  border-color: #b9d9cf;
+}
+.flow-no {
+  border-color: #eec3b8;
+}
+.flow-tag {
+  justify-self: start;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff8f1;
+}
+.flow-yes .flow-tag {
+  background: var(--sea);
+}
+.flow-no .flow-tag {
+  background: var(--danger);
+}
+.flow-shares {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+.flow-shares span {
+  color: var(--c);
+}
+
+/* Pop-up after a padala finishes. */
+.toast {
+  position: fixed;
+  z-index: 50;
+  right: 24px;
+  bottom: 24px;
+  width: min(420px, calc(100vw - 32px));
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: start;
+  padding: 16px 16px 16px 18px;
+  border-radius: var(--r);
+  background: var(--card);
+  border: 1px solid var(--line);
+  box-shadow: 0 18px 40px -16px rgb(29 24 20 / 0.45);
+  animation: toast-in 0.45s var(--ease) both;
+}
+@media (max-width: 560px) {
+  .toast {
+    right: 16px;
+    bottom: 16px;
+  }
+}
+.toast-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: #fff;
+}
+.toast-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.toast-ok .toast-icon {
+  background: var(--sea);
+}
+.toast-back .toast-icon,
+.toast-bad .toast-icon {
+  background: var(--danger);
+}
+.toast-title {
+  font-weight: 750;
+}
+.toast-body {
+  font-size: 0.92rem;
+  color: var(--ink-2);
+}
+.toast-back .toast-body,
+.toast-bad .toast-body {
+  color: var(--danger);
+  font-weight: 650;
+}
+.toast-close {
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink-3);
+  background: none;
+  border: 0;
+  padding: 4px 6px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+.toast-close:hover {
+  color: var(--ink);
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
 .result.bad {
   border-color: #eec3b8;
 }

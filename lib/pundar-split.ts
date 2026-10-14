@@ -6,6 +6,10 @@
 export const USDC_ISSUER =
   "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5";
 
+// The deployed flow's Condition: 30 USDC and up goes to the Split; anything
+// smaller is paid straight back to the sender. Must match the deployment.
+export const MIN_PADALA_STROOPS = "300000000"; // 30 USDC
+
 export const SHARES = [
   {
     key: "household",

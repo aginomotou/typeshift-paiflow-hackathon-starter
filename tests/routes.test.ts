@@ -51,6 +51,9 @@ it("blocks demo payout and rejects invalid cursors before upstream calls", async
   expect(
     (await GET(new Request("http://localhost/api/events?token=bad"))).status,
   ).toBe(422);
+  expect(
+    (await GET(new Request("http://localhost/api/events?txHash=not-a-hash"))).status,
+  ).toBe(422);
 });
 
 it.each([undefined, "prepare"])(
