@@ -1479,44 +1479,6 @@ body:has(.cta-band) .site-footer {
 .plan-quote em {
   color: #ffe0c7;
 }
-.segmented {
-  position: relative;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  padding: 5px;
-  border-radius: 999px;
-  background: var(--paper-2);
-}
-.segmented button {
-  position: relative;
-  z-index: 1;
-  min-height: 50px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  font: inherit;
-  font-weight: 650;
-  color: var(--ink-3);
-  cursor: pointer;
-  transition: color 0.3s;
-}
-.segmented button[aria-checked="true"] {
-  color: var(--ink);
-}
-.segmented .thumb {
-  position: absolute;
-  top: 5px;
-  bottom: 5px;
-  left: 5px;
-  width: calc(50% - 5px);
-  border-radius: 999px;
-  background: var(--card);
-  box-shadow: 0 6px 16px -8px rgb(70 45 20 / 0.35);
-  transition: transform 0.45s var(--ease);
-}
-.segmented[data-i="1"] .thumb {
-  transform: translateX(100%);
-}
 .chips {
   display: flex;
   flex-wrap: wrap;
@@ -1541,9 +1503,6 @@ body:has(.cta-band) .site-footer {
   background: var(--ink);
   border-color: var(--ink);
   color: var(--paper);
-}
-.reveal-row {
-  animation: rise 0.45s var(--ease) both;
 }
 .progress {
   display: grid;
@@ -1653,6 +1612,32 @@ body:has(.cta-band) .site-footer {
   outline: none;
   border-color: var(--ink);
   box-shadow: 0 0 0 4px rgb(180 83 42 / 0.15);
+}
+
+/* Recognised wallet: the role the plan gives this address. */
+.identity {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  align-items: start;
+  padding: 20px 22px;
+  border-radius: var(--r);
+  background: var(--paper);
+  border: 1.5px solid var(--c);
+}
+.identity .dot {
+  margin-top: 6px;
+}
+.identity-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c);
+}
+.identity-role {
+  margin: 4px 0 2px;
+  font-size: 1.2rem;
 }
 
 /* ---------- Dashboard ---------- */

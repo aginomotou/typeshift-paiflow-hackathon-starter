@@ -19,6 +19,7 @@ export function FamilyView({
 }) {
   const enabled = config.mode === "demo" || config.mode === "team";
   const { profile } = useProfile();
+  const firstName = profile?.name?.split(" ")[0];
   const { discovery, error: discoveryError } = useDiscovery(
     enabled,
     JSON.stringify(config),
@@ -35,7 +36,6 @@ export function FamilyView({
       : role === "ofw"
         ? SHARES.find((s) => s.key === "savings")
         : undefined;
-  const firstName = profile?.name.split(" ")[0];
 
   return (
     <main className="container dash">

@@ -32,6 +32,7 @@ export function StarterApp({
 }) {
   const enabled = config.mode === "demo" || config.mode === "team";
   const { profile } = useProfile();
+  const firstName = profile?.name?.split(" ")[0];
   const [address, setAddress] = useState("");
   const [amount, setAmount] = useState("100");
   const [error, setError] = useState("");
@@ -114,7 +115,6 @@ export function StarterApp({
   })();
   const expected = sentStroops ? expectedSplit(sentStroops) : null;
   const result = workflow.result;
-  const firstName = profile?.name.split(" ")[0];
 
   return (
     <main className="container dash">
@@ -298,6 +298,13 @@ export function StarterApp({
           </Link>
         </aside>
       </div>
+
+      {profile?.address && address && address !== profile.address && (
+        <p className="notice" role="status">
+          Ibang wallet ang nakakonekta sa Freighter ({shortAddress(address)}).
+          Naka-login ka bilang {shortAddress(profile.address)}.
+        </p>
+      )}
 
       {workflow.message && !result && (
         <p className="notice info" role="status">{workflow.message}</p>

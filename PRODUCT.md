@@ -38,7 +38,7 @@ Today the whole remittance goes to one relative, and alternatives like INGAT spl
 - **Testnet only; no real money.** Mainnet is refused. Cash-out to pesos is not built.
 - The split is fixed at 60/15/25 basis points (`lib/pundar-split.ts`) and must match the deployed Split block. Paiflow Dev mode is off for the event, so there are no per-payment recipients or amounts.
 - Every recipient needs the Circle testnet USDC trustline. Balances can be `ok`, `no_trustline` or `no_account`.
-- The profile (name, role, wallet address) lives only in browser localStorage. It is **not** authentication.
+- Register is a 3-step flow (role → name → optional wallet). Login derives the role from the connected wallet: it's matched against the three configured recipient addresses, where household → guardian, student → student and savings → OFW (the OFW sends from the savings wallet), and it keeps any name given at register. The profile (role, name, wallet) lives only in browser localStorage and is **not** authentication: the name and the role picked at register are self-declared, and Freighter reports an address without signing a proof.
 - Money uses `lib/amount.ts` bigint/stroops strings, never floats. Paiflow is called only from server-only `lib/paiflow.ts`. Starter modes are `prepare`, `demo` and `team`.
 - Not building now: savings locked until a date, peso cash-out, self-serve family setup, and changing the split after deployment.
 
